@@ -7,10 +7,14 @@ import Body from './Components/Body';
 import Body2 from './Components/Body2';
 import Caption2 from './Components/Caption2';
 
+export type TextProps = {
+  children: string
+};
+
 type TypographyProps = {
   type: 'title' | 'subtitle' | 'header' | 'caption' | 'caption2' | 'body' | 'body2'
   link?: string
-};
+} & TextProps;
 
 const types = {
   title: Title,

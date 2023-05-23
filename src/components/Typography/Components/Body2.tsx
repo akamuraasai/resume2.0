@@ -1,8 +1,9 @@
 import { FC } from 'react';
+import { TextProps } from '@resume/components/Typography';
 
 type Body2Props = {
   link?: string
-};
+} & TextProps;
 
 const Body2: FC<Body2Props> = ({ link, children }) => {
   const content = link
