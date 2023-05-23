@@ -17,14 +17,14 @@ export default async function Home() {
 
   return (
     <div className="flex align-middle justify-center bg-neutral-500">
-      <div className="flex flex-row max-w-[800px] w-screen h-full min-h-[2240px] bg-white relative">
+      <div className="flex flex-row max-w-[800px] w-screen h-full min-h-[2240px] bg-white relative container">
         {componentsStrucute.center.map(ComponentSelector)}
 
-        <div className="flex flex-col gap-3 flex-none w-[248px] bg-neutral-100 p-8 pl-[64px] pt-[204px]">
+        <div className="flex flex-col gap-3 flex-none w-[248px] bg-neutral-100 p-8 pl-[64px] pt-[204px] left-side">
           {componentsStrucute.left.map(ComponentSelector)}
         </div>
 
-        <div className="flex flex-col gap-3 flex-auto pl-[27px] pr-[64px] pt-[204px] pb-24">
+        <div className="flex flex-col gap-3 flex-auto xs:w-full pl-[27px] pr-[64px] pt-[204px] pb-24 bg-white right-side">
           {componentsStrucute.right.map(ComponentSelector)}
         </div>
       </div>
