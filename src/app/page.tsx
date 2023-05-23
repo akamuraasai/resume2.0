@@ -1,6 +1,8 @@
 import { getComponents } from '@resume/hooks/useAPI';
 import ComponentSelector, { Component } from '@resume/components/ComponentSelector';
 
+export const revalidate = 60;
+
 export default async function Home() {
   const components = (await getComponents() || []) as Component[];
   const componentsStrucute = components.reduce((structure, component) => {
