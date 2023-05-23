@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import Typography from '@resume/components/Typography';
 
-type History = {
+export type History = {
   title: string,
   date: string,
   location: string,

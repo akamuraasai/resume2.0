@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import Typography from '@resume/components/Typography';
 
-type TextAndLink = {
+export type TextAndLink = {
   text: string,
   link?: string,
 };
