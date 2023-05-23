@@ -17,7 +17,7 @@ export default async function Home() {
 
   return (
     <div className="flex align-middle justify-center bg-neutral-500">
-      <div className="flex flex-row max-w-[800px] w-screen h-full min-h-screen bg-white relative">
+      <div className="flex flex-row max-w-[800px] w-screen h-full min-h-[2240px] bg-white relative">
         {componentsStrucute.center.map(ComponentSelector)}
 
         <div className="flex flex-col gap-3 flex-none w-[248px] bg-neutral-100 p-8 pl-[64px] pt-[204px]">
