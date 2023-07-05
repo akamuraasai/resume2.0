@@ -36,6 +36,16 @@ type ComponentData = {
   sort?: number,
 };
 
+type ComponentTitle = {
+  id: string,
+  component_id: string,
+  language: 'all' | 'en-US' | 'pt-BR',
+  title: string,
+  subtitle: string,
+  created_at: string,
+  updated_at: string,
+};
+
 export type Component = {
   id: string,
   type: 'banner' | 'info' | 'items' | 'history' | 'text',
@@ -46,6 +56,7 @@ export type Component = {
   updated_at: string,
   subtitle?: string,
   components_data: ComponentData[],
+  components_title: ComponentTitle[],
 };
 
 type ComponentSelectorProp = {

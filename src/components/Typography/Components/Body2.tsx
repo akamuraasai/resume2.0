@@ -5,9 +5,9 @@ type Body2Props = {
   link?: string
 } & TextProps;
 
-const Body2: FC<Body2Props> = ({ link, children }) => {
+const Body2: FC<Body2Props> = ({ link, className, children }) => {
   const content = link
-    ? (<a href={link} target="_blank" className="underline">{children}</a>)
+    ? (<a href={link} target={className ? undefined : `_blank`} className={`undeline ${className}`}>{children}</a>)
     : children;
 
   return (

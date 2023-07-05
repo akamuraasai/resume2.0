@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@resume/types/database.types';
 
@@ -7,9 +8,14 @@ const supabase = createClient<Database>(
 );
 
 export const getComponents = async () => {
+  const cookieStore = cookies();
+  const language = cookieStore.get('lang') || 'en-US';
+  // const language = cookieStore.get('lang') || 'pt-BR';
   const { data, error } = await supabase
     .from('components')
-    .select(`*, components_data ( * )`)
+    .select(`*, components_data ( * ), components_title ( * )`)
+    .in('components_data.language', ['all', language])
+    .in('components_title.language', [language])
     .order('sort', { ascending: true })
     .order('sort', { foreignTable: 'components_data', ascending: true });
 

@@ -9,6 +9,7 @@ import Caption2 from './Components/Caption2';
 
 export type TextProps = {
   children: string
+  className?: string
 };
 
 type TypographyProps = {
@@ -27,10 +28,10 @@ const types = {
   DEFAULT: Body,
 };
 
-const Typography: FC<TypographyProps> = ({ type, link, children }) => {
+const Typography: FC<TypographyProps> = ({ type, link, className, children }) => {
   const Component = types[type] || types.DEFAULT;
 
-  return <Component link={link}>{children}</Component>;
+  return <Component link={link} className={className}>{children}</Component>;
 };
 
 export default Typography;
