@@ -1,3 +1,2 @@
 # Resume
-noop
 
