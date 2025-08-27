@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useHash } from '@resume/hooks/useHash';
-import Typography from '@resume/components/Typography';
 
 interface LanguageSelectorProps {
   currentLanguage: string;
@@ -24,19 +23,31 @@ export default function LanguageSelector({ currentLanguage }: LanguageSelectorPr
     const interval = setInterval(checkLanguageChange, 100);
     return () => clearInterval(interval);
   }, [actualLanguage]);
-  
-  const languageSelected = (language: string) => 
-    actualLanguage === language ? 'text-neutral-950' : 'text-neutral-100';
 
   return (
-    <div className="flex flex-row gap-2 items-center justify-center fixed top-[32px] right-[32px] print:hidden">
-      <Typography type="body2" link="#en-US" className={`${languageSelected('en-US')} cursor-pointer`}>
-        ENGLISH
-      </Typography>
-      |
-      <Typography type="body2" link="#pt-BR" className={`${languageSelected('pt-BR')} cursor-pointer`}>
-        PORTUGUÊS
-      </Typography>
+    <div className="fixed top-[32px] right-[32px] print:hidden">
+      <div className="flex flex-row bg-neutral-800 rounded-full p-1 shadow-lg">
+        <a
+          href="#en-US"
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+            actualLanguage === 'en-US'
+              ? 'bg-white text-neutral-900 shadow-sm'
+              : 'text-neutral-400 hover:text-white'
+          }`}
+        >
+          EN
+        </a>
+        <a
+          href="#pt-BR"
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+            actualLanguage === 'pt-BR'
+              ? 'bg-white text-neutral-900 shadow-sm'
+              : 'text-neutral-400 hover:text-white'
+          }`}
+        >
+          PT
+        </a>
+      </div>
     </div>
   );
 }
