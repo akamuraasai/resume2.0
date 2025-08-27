@@ -43,7 +43,7 @@ export default function LanguageSelector({ currentLanguage }: LanguageSelectorPr
         </div>
       )}
       
-      <div className="fixed top-[32px] right-[32px] print:hidden z-50">
+      <div className="fixed top-[32px] right-[32px] max-sm:bottom-[32px] max-sm:top-auto print:hidden z-50">
         <div className="flex flex-row bg-neutral-800 rounded-full p-1 shadow-lg">
           <a
             href="#en-US"
