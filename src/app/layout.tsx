@@ -1,5 +1,6 @@
 import './globals.css';
 import { Montserrat as FontFamily } from 'next/font/google';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 const fontFamily = FontFamily({ subsets: ['latin'] });
 
@@ -24,7 +25,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={fontFamily.className}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )

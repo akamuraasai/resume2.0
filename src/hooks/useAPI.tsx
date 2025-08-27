@@ -16,9 +16,35 @@ export const getComponents = async () => {
     .from('components')
     .select(`*, components_data ( * ), components_title ( * )`)
     .in('components_data.language', ['all', language])
+    .is('components_data.deleted_at', null)
     .in('components_title.language', [language])
     .order('sort', { ascending: true })
     .order('sort', { foreignTable: 'components_data', ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+// Function for dashboard - gets all components without language filter
+export const getAllComponentsForDashboard = async () => {
+  const { data, error } = await supabase
+    .from('components')
+    .select(`
+      id,
+      type,
+      position,
+      sort,
+      created_at,
+      updated_at,
+      components_title (
+        title,
+        language
+      )
+    `)
+    .order('sort', { ascending: true });
 
   if (error) {
     throw new Error(error.message);
