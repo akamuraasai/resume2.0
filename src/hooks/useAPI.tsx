@@ -26,3 +26,28 @@ export const getComponents = async () => {
 
   return data;
 }
+
+// Function for dashboard - gets all components without language filter
+export const getAllComponentsForDashboard = async () => {
+  const { data, error } = await supabase
+    .from('components')
+    .select(`
+      id,
+      type,
+      position,
+      sort,
+      created_at,
+      updated_at,
+      components_title (
+        title,
+        language
+      )
+    `)
+    .order('sort', { ascending: true });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
