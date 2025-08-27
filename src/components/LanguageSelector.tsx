@@ -36,12 +36,9 @@ export default function LanguageSelector({ currentLanguage }: LanguageSelectorPr
   return (
     <>
       {isLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center print:hidden">
-          <div className="bg-white rounded-lg p-6 shadow-xl">
-            <div className="flex flex-col items-center">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-neutral-900"></div>
-              <p className="mt-4 text-neutral-700">Loading...</p>
-            </div>
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-40 flex items-center justify-center print:hidden">
+          <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-neutral-200 border-t-neutral-600"></div>
           </div>
         </div>
       )}
