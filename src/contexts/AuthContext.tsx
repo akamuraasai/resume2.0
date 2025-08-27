@@ -69,12 +69,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Only redirect if we're not on the desired route
-        if (event === 'SIGNED_IN' && pathname !== '/dashboard') {
+        // Only redirect on explicit auth events, not on session refreshes
+        if (event === 'SIGNED_IN' && pathname === '/login') {
           router.push('/dashboard');
-        } else if (event === 'SIGNED_OUT' && pathname !== '/login' && pathname !== '/') {
+        } else if (event === 'SIGNED_OUT') {
           router.push('/login');
         }
+        // Don't redirect on TOKEN_REFRESHED or other session management events
       }
     });
 
