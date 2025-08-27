@@ -8,8 +8,9 @@ const supabase = createClient<Database>(
 );
 
 export const getComponents = async () => {
-  const cookieStore = cookies();
-  const language = cookieStore.get('lang') || 'en-US';
+  const cookieStore = await cookies();
+  const langCookie = cookieStore.get('lang');
+  const language = langCookie?.value || 'en-US';
   // const language = cookieStore.get('lang') || 'pt-BR';
   const { data, error } = await supabase
     .from('components')
