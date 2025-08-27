@@ -2,6 +2,21 @@
 
 import { supabase } from '@/lib/supabase';
 
+type ComponentsDataInsert = {
+  component_id: string;
+  language: string;
+  value: any;
+  sort: number;
+  created_at?: string;
+  updated_at?: string;
+};
+
+type ComponentsDataUpdate = {
+  value?: any;
+  updated_at?: string;
+  deleted_at?: string | null;
+};
+
 export type ComponentTitle = {
   id: string;
   component_id: string;
@@ -148,21 +163,21 @@ export const updateComponentTitles = async (
   const upsertData = [
     {
       component_id: componentId,
-      language: 'en-US',
+      language: 'en-US' as const,
       title: englishTitle,
       subtitle: englishSubtitle,
       updated_at: new Date().toISOString()
     },
     {
       component_id: componentId,
-      language: 'pt-BR',
+      language: 'pt-BR' as const,
       title: portugueseTitle,
       subtitle: portugueseSubtitle,
       updated_at: new Date().toISOString()
     }
   ];
 
-  const { error } = await supabase
+  const { error } = await (supabase as any)
     .from('components_title')
     .upsert(upsertData, {
       onConflict: 'component_id,language'
@@ -190,16 +205,18 @@ export const updateComponentData = async (
         sort: item.sort || 1
       });
       
-      const { error } = await supabase
+      const insertData: ComponentsDataInsert = {
+        component_id: componentId,
+        language: 'en-US',
+        value: item.value,
+        sort: item.sort || 1,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      const { error } = await (supabase as any)
         .from('components_data')
-        .insert({
-          component_id: componentId,
-          language: 'en-US',
-          value: item.value,
-          sort: item.sort || 1,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+        .insert(insertData);
       
       if (error) {
         console.error('Insert error:', error);
@@ -207,17 +224,15 @@ export const updateComponentData = async (
       }
     } else if (item.id) {
       // Update existing item
-      const updateData: any = {
+      const updateData: ComponentsDataUpdate = {
         value: item.value,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        deleted_at: item.deleted_at || null
       };
-      
-      // Always include deleted_at field, either as timestamp or null
-      updateData.deleted_at = item.deleted_at || null;
       
       console.log('Updating English item:', item.id, updateData);
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('components_data')
         .update(updateData)
         .eq('id', item.id);
@@ -233,7 +248,7 @@ export const updateComponentData = async (
   for (const item of portugueseData) {
     if (item.isNew) {
       // Insert new item
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('components_data')
         .insert({
           component_id: componentId,
@@ -242,24 +257,22 @@ export const updateComponentData = async (
           sort: item.sort || 1,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        });
+        } as ComponentsDataInsert);
       
       if (error) {
         throw new Error(`Failed to insert Portuguese data: ${error.message}`);
       }
     } else if (item.id) {
       // Update existing item
-      const updateData: any = {
+      const updateData: ComponentsDataUpdate = {
         value: item.value,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        deleted_at: item.deleted_at || null
       };
-      
-      // Always include deleted_at field, either as timestamp or null
-      updateData.deleted_at = item.deleted_at || null;
       
       console.log('Updating Portuguese item:', item.id, updateData);
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('components_data')
         .update(updateData)
         .eq('id', item.id);
@@ -267,6 +280,58 @@ export const updateComponentData = async (
       if (error) {
         console.error('Update error:', error);
         throw new Error(`Failed to update Portuguese data: ${error.message}`);
+      }
+    }
+  }
+};
+
+// Function to update component data for items/text/history (language: 'all')
+export const updateItemsComponentData = async (
+  componentId: string,
+  itemsData: any[]
+): Promise<void> => {
+  // Process items data
+  for (const item of itemsData) {
+    if (item.isNew) {
+      // Insert new item
+      console.log('Inserting new item:', {
+        component_id: componentId,
+        language: 'all',
+        value: item.value,
+        sort: item.sort || 1
+      });
+      
+      const { error } = await (supabase as any)
+        .from('components_data')
+        .insert({
+          component_id: componentId,
+          language: 'all',
+          value: item.value,
+          sort: item.sort || 1
+        } as ComponentsDataInsert);
+      
+      if (error) {
+        console.error('Insert error:', error);
+        throw new Error(`Failed to insert new item: ${error.message}`);
+      }
+    } else if (item.id) {
+      // Update existing item
+      const updateData: ComponentsDataUpdate = {
+        value: item.value,
+        updated_at: new Date().toISOString(),
+        deleted_at: item.deleted_at || null
+      };
+      
+      console.log('Updating item:', item.id, updateData);
+      
+      const { error } = await (supabase as any)
+        .from('components_data')
+        .update(updateData)
+        .eq('id', item.id);
+      
+      if (error) {
+        console.error('Update error:', error);
+        throw new Error(`Failed to update item: ${error.message}`);
       }
     }
   }

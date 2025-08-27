@@ -15,6 +15,8 @@ type ComponentDataEditorProps = {
   onAdd?: () => void;
   onUpdate?: (tempId: string, field: 'label' | 'values', value: string | string[]) => void;
   onRemoveToggle?: (tempId: string) => void;
+  // For items/text/history components
+  onItemsDataChange?: (newData: any[]) => void;
 };
 
 export default function ComponentDataEditor({
@@ -25,7 +27,8 @@ export default function ComponentDataEditor({
   compact = false,
   onAdd,
   onUpdate,
-  onRemoveToggle
+  onRemoveToggle,
+  onItemsDataChange
 }: ComponentDataEditorProps) {
   const isPortuguese = language === 'portuguese';
 
@@ -35,7 +38,13 @@ export default function ComponentDataEditor({
         return <TextEditor items={data} language={language} />;
         
       case 'items':
-        return <ItemsEditor items={data} language={language} compact={compact} />;
+        console.log('ComponentDataEditor - onItemsDataChange:', !!onItemsDataChange, 'for language:', language);
+        return <ItemsEditor 
+          items={data} 
+          language={language} 
+          compact={compact} 
+          onDataChange={onItemsDataChange || undefined} 
+        />;
         
       case 'info':
         if (dynamicData && onAdd && onUpdate && onRemoveToggle) {
@@ -52,7 +61,12 @@ export default function ComponentDataEditor({
         return null;
         
       case 'history':
-        return <HistoryEditor items={data} language={language} compact={compact} />;
+        return <HistoryEditor 
+          items={data} 
+          language={language} 
+          compact={compact} 
+          onDataChange={onItemsDataChange || undefined} 
+        />;
         
       case 'banner':
         return <BannerEditor language={language} />;

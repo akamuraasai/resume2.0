@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Link from 'next/link';
 import TitleEditor from '@/components/TitleEditor';
 import ComponentDataEditor from '@/components/ComponentDataEditor';
-import { getFullComponent, getTitleByLanguage, getDataByLanguage, updateComponentTitles, updateComponentData, FullComponent } from '@/hooks/useComponentsAdmin';
+import { getFullComponent, getTitleByLanguage, getDataByLanguage, updateComponentTitles, updateComponentData, updateItemsComponentData, FullComponent } from '@/hooks/useComponentsAdmin';
 
 type Language = 'en-US' | 'pt-BR';
 
@@ -32,6 +32,18 @@ export default function EditComponentPage() {
   
   // Dynamic data state for editing (info components)
   const [dynamicData, setDynamicData] = useState<{
+    english: any[];
+    portuguese: any[];
+  }>({
+    english: [],
+    portuguese: []
+  });
+
+  // Items data state for editing (items components)
+  const [itemsData, setItemsData] = useState<any[]>([]);
+
+  // Language-specific items data for non-info components (like hobbies)
+  const [languageSpecificItemsData, setLanguageSpecificItemsData] = useState<{
     english: any[];
     portuguese: any[];
   }>({
@@ -75,6 +87,39 @@ export default function EditComponentPage() {
               isNew: false
             }))
           });
+
+          // Populate items data (for items/text/history components)
+          if (data.type !== 'info') {
+            // Check if this component uses language-specific data or 'all' language data
+            const hasLanguageSpecificData = data.components_data.some(d => d.language === 'en-US' || d.language === 'pt-BR');
+            
+            if (hasLanguageSpecificData) {
+              // This component has separate data for each language (like hobbies)
+              const englishData = getDataByLanguage(data.components_data, 'en-US');
+              const portugueseData = getDataByLanguage(data.components_data, 'pt-BR');
+              
+              setLanguageSpecificItemsData({
+                english: englishData.map((item, index) => ({
+                  ...item,
+                  isNew: false
+                })),
+                portuguese: portugueseData.map((item, index) => ({
+                  ...item,
+                  isNew: false
+                }))
+              });
+            } else {
+              // This component uses 'all' language data (like social links)
+              const allLanguageData = data.components_data
+                .filter(d => d.language === 'all')
+                .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+                .map((item) => ({
+                  ...item,
+                  isNew: false
+                }));
+              setItemsData(allLanguageData);
+            }
+          }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load component');
@@ -91,6 +136,64 @@ export default function EditComponentPage() {
   const handleCancel = () => {
     router.push('/dashboard');
   };
+
+  // Function to update language-specific items data (for hobbies, etc) - MUST be before memoized callbacks
+  const updateLanguageSpecificItemsData = useCallback((language: 'english' | 'portuguese', newData: any[]) => {
+    console.log('UPDATE CALLED:', language, newData.length);
+    setLanguageSpecificItemsData(prev => ({
+      ...prev,
+      [language]: newData
+    }));
+  }, []);
+
+  // Memoized values - MUST be before any conditional returns
+  const hasLanguageSpecificData = useMemo(() => 
+    component?.components_data?.some(d => d.language === 'en-US' || d.language === 'pt-BR') || false,
+    [component?.components_data]
+  );
+
+  const englishData = useMemo(() => {
+    if (!component) return [];
+    if (component.type === 'info') {
+      return getDataByLanguage(component.components_data, 'en-US');
+    }
+    return hasLanguageSpecificData 
+      ? languageSpecificItemsData.english
+      : itemsData;
+  }, [component, hasLanguageSpecificData, languageSpecificItemsData.english, itemsData]);
+    
+  const portugueseData = useMemo(() => {
+    if (!component) return [];
+    if (component.type === 'info') {
+      return getDataByLanguage(component.components_data, 'pt-BR');
+    }
+    return hasLanguageSpecificData
+      ? languageSpecificItemsData.portuguese
+      : itemsData;
+  }, [component, hasLanguageSpecificData, languageSpecificItemsData.portuguese, itemsData]);
+
+  // Determine callbacks for ItemsEditor  
+  const englishItemsDataCallback = useMemo(() => {
+    if (!component) return undefined;
+    if (component.type !== 'info' && hasLanguageSpecificData) {
+      return (newData: any[]) => updateLanguageSpecificItemsData('english', newData);
+    }
+    if (component.type !== 'info') {
+      return setItemsData;
+    }
+    return undefined;
+  }, [component, hasLanguageSpecificData, updateLanguageSpecificItemsData]);
+
+  const portugueseItemsDataCallback = useMemo(() => {
+    if (!component) return undefined;
+    if (component.type !== 'info' && hasLanguageSpecificData) {
+      return (newData: any[]) => updateLanguageSpecificItemsData('portuguese', newData);
+    }
+    if (component.type !== 'info') {
+      return setItemsData;
+    }
+    return undefined;
+  }, [component, hasLanguageSpecificData, updateLanguageSpecificItemsData]);
 
   // Function to add new info item (creates both EN and PT versions)
   const addNewInfoItem = () => {
@@ -161,6 +264,7 @@ export default function EditComponentPage() {
     });
   };
 
+
   // Function to update info item data
   const updateInfoItem = (tempId: string, language: 'english' | 'portuguese', field: 'label' | 'values', value: string | string[]) => {
     setDynamicData(prev => {
@@ -201,13 +305,34 @@ export default function EditComponentPage() {
         formData.portugueseSubtitle
       );
       
-      // Save component data changes (for info components)
+      // Save component data changes
       if (component.type === 'info') {
         await updateComponentData(
           component.id,
           dynamicData.english,
           dynamicData.portuguese
         );
+      } else if (hasLanguageSpecificData) {
+        // For components with language-specific data (like hobbies)
+        const englishDataForSave = languageSpecificItemsData.english.map((item, index) => ({
+          ...item,
+          tempId: item.tempId || `en-${index}`,
+          isNew: item.isNew || false
+        }));
+        const portugueseDataForSave = languageSpecificItemsData.portuguese.map((item, index) => ({
+          ...item,
+          tempId: item.tempId || `pt-${index}`,
+          isNew: item.isNew || false
+        }));
+        
+        await updateComponentData(
+          component.id,
+          englishDataForSave,
+          portugueseDataForSave
+        );
+      } else {
+        // For items/text/history components with 'all' language data
+        await updateItemsComponentData(component.id, itemsData);
       }
       
       // Show success message
@@ -276,9 +401,6 @@ export default function EditComponentPage() {
       </ProtectedRoute>
     );
   }
-
-  const englishData = getDataByLanguage(component.components_data, 'en-US');
-  const portugueseData = getDataByLanguage(component.components_data, 'pt-BR');
 
   return (
     <ProtectedRoute>
@@ -415,6 +537,7 @@ export default function EditComponentPage() {
                         onAdd={component.type === 'info' ? addNewInfoItem : undefined}
                         onUpdate={component.type === 'info' ? (tempId, field, value) => updateInfoItem(tempId, 'english', field, value) : undefined}
                         onRemoveToggle={component.type === 'info' ? (tempId) => handleInfoItemAction(tempId, 'english') : undefined}
+                        onItemsDataChange={englishItemsDataCallback}
                       />
                     </div>
                   )}
@@ -435,8 +558,9 @@ export default function EditComponentPage() {
                         data={portugueseData}
                         dynamicData={component.type === 'info' ? dynamicData.portuguese : undefined}
                         onAdd={component.type === 'info' ? addNewInfoItem : undefined}
-                        onUpdate={component.type === 'info' ? (tempId: string, field: string, value: any) => updateInfoItem(tempId, 'portuguese', field, value) : undefined}
+                        onUpdate={component.type === 'info' ? (tempId: string, field: string, value: any) => updateInfoItem(tempId, 'portuguese', field as 'label' | 'values', value) : undefined}
                         onRemoveToggle={component.type === 'info' ? (tempId: string) => handleInfoItemAction(tempId, 'portuguese') : undefined}
+                        onItemsDataChange={portugueseItemsDataCallback}
                       />
                     </div>
                   )}
@@ -468,8 +592,9 @@ export default function EditComponentPage() {
                         dynamicData={component.type === 'info' ? dynamicData.english : undefined}
                         compact={true}
                         onAdd={component.type === 'info' ? addNewInfoItem : undefined}
-                        onUpdate={component.type === 'info' ? (tempId: string, field: string, value: any) => updateInfoItem(tempId, 'english', field, value) : undefined}
+                        onUpdate={component.type === 'info' ? (tempId: string, field: string, value: any) => updateInfoItem(tempId, 'english', field as 'label' | 'values', value) : undefined}
                         onRemoveToggle={component.type === 'info' ? (tempId: string) => handleInfoItemAction(tempId, 'english') : undefined}
+                        onItemsDataChange={englishItemsDataCallback}
                       />
                     </div>
                   </div>
@@ -496,8 +621,9 @@ export default function EditComponentPage() {
                         dynamicData={component.type === 'info' ? dynamicData.portuguese : undefined}
                         compact={true}
                         onAdd={component.type === 'info' ? addNewInfoItem : undefined}
-                        onUpdate={component.type === 'info' ? (tempId: string, field: string, value: any) => updateInfoItem(tempId, 'portuguese', field, value) : undefined}
+                        onUpdate={component.type === 'info' ? (tempId: string, field: string, value: any) => updateInfoItem(tempId, 'portuguese', field as 'label' | 'values', value) : undefined}
                         onRemoveToggle={component.type === 'info' ? (tempId: string) => handleInfoItemAction(tempId, 'portuguese') : undefined}
+                        onItemsDataChange={portugueseItemsDataCallback}
                       />
                     </div>
                   </div>
