@@ -16,6 +16,7 @@ export const getComponents = async () => {
     .from('components')
     .select(`*, components_data ( * ), components_title ( * )`)
     .in('components_data.language', ['all', language])
+    .is('components_data.deleted_at', null)
     .in('components_title.language', [language])
     .order('sort', { ascending: true })
     .order('sort', { foreignTable: 'components_data', ascending: true });

@@ -104,6 +104,7 @@ export const getFullComponent = async (id: string): Promise<FullComponent | null
       components_data (*)
     `)
     .eq('id', id)
+    .order('sort', { foreignTable: 'components_data', ascending: true })
     .single();
 
   if (error) {
@@ -132,7 +133,7 @@ export const getTitleByLanguage = (titles: ComponentTitle[], language: 'en-US' |
 
 // Helper function to get data by language  
 export const getDataByLanguage = (data: ComponentData[], language: 'en-US' | 'pt-BR') => {
-  return data?.filter(d => d.language === language) || [];
+  return data?.filter(d => d.language === language).sort((a, b) => (a.sort || 0) - (b.sort || 0)) || [];
 };
 
 // Function to update component titles
